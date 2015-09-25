@@ -5,5 +5,6 @@
 int main()
 {
     // TODO: Implement
+    printf("laalalala\n");
     return 0;
 }
