@@ -6,9 +6,11 @@
 int main()
 {
 	struct prinfo p;
-	int nr = 0;
+	int nr = 10, pc;
 
 	printf("run test\n");
-	syscall(223, &p, &nr);
+	pc = syscall(223, &p, &nr);
+	printf("nr after system call: %d\n", nr);
+	printf("total processes count: %d\n", pc);
 	return 0;
 }
