@@ -1,0 +1,10 @@
+Steps to add the 'ptree' system call
+
+1. Change the 223rd call in calls.S to sys_ptree
+
+2. Add ptree.c and ptree.h and add ptree.o to the Makefile
+   2.1 in ptree.c, use SYSCALL_DEFINE2 macro to declare the function
+   2.2 implement ptree.c and ptree.h
+
+3. Define __NR_ptree in the unistd.h file so we can call the function
+   3.1 in the tester we will call directly use the system call number
