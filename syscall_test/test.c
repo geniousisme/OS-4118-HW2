@@ -1,9 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "prinfo.h"
 
 int main()
 {
-    // TODO: Implement
-    return 0;
+	struct prinfo p;
+	int nr = 0;
+
+	printf("run test\n");
+	syscall(223, &p, &nr);
+	return 0;
 }
