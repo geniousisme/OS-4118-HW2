@@ -8,3 +8,22 @@ Steps to add the 'ptree' system call
 
 3. Define __NR_ptree in the unistd.h file so we can call the function
    3.1 in the tester we will call directly use the system call number
+
+
+Ideas for implementing ptree
+
+1. Use copy_to_user to make sure the process has the right to modify input
+
+2. We can do DFS traverse without a stack or recursion if every node knows
+   its parent, its children and its sibling. The algorithm is:
+   - if it has a child, go to the child
+   - if no child but it has next sibling, go to the next sibling
+   - if no child nor sibling, go back to the parent, and skip to check child
+   - loop until it goes back to the root
+
+Ideas for implementing tester
+
+1. With the information for child and next sibling, we can add proper
+   indentation directly. The idea is to record the next task that will
+   be shown on each indent level using an array. And updating them
+   when seeing a new process.
