@@ -5,12 +5,12 @@
 
 #define N 100
 
-int main()
+int main(void)
 {
 	struct prinfo p[N], q;
 	int nr = N, pc, i, j, indents[N] = {0};
 	/* indents store the next pid has such indent level.
-           If indents[1] = 10, it means process 10 has indent level 1 */
+	   If indents[1] = 10, it means process 10 has indent level 1 */
 
 	pc = syscall(223, p, &nr);
 

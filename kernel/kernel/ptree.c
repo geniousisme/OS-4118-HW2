@@ -5,8 +5,7 @@
 #include <linux/syscalls.h>
 #include <linux/uaccess.h>
 #include <asm-generic/errno-base.h>
-
-extern rwlock_t tasklist_lock;
+#include "ptree.h"
 
 int has_child(struct task_struct *p)
 {
@@ -28,30 +27,10 @@ struct task_struct *next_sibling(struct task_struct *p)
 	return list_first_entry(&p->sibling, struct task_struct, sibling);
 }
 
-void print_prinfo(struct task_struct *p)
-{
-	/* this function is for debugging */
-	struct prinfo q;
-	struct task_struct *itr;
-	itr = p;
-	while (itr != &init_task) {
-		printk("\t");
-		itr = itr->real_parent;
-	}
-	strncpy(q.comm, p->comm, 64);
-	q.pid = p->pid;
-	q.state = p->state;
-	q.parent_pid = p->real_parent->pid;
-	q.uid = p->real_cred->uid;
-	q.first_child_pid = has_child(p) ? first_child(p)->pid : 0;
-	q.next_sibling_pid = has_next_sibling(p) ? next_sibling(p)->pid : 0;
-	printk("%s,%d,%ld,%d,%d,%d,%ld\n", q.comm, q.pid, q.state,
-	       q.parent_pid, q.first_child_pid, q.next_sibling_pid, q.uid);
-}
-
 int copy_prinfo(struct prinfo *dst, struct task_struct *p)
 {
 	struct prinfo q;
+
 	strncpy(q.comm, p->comm, 64);
 	q.pid = p->pid;
 	q.state = p->state;
@@ -59,7 +38,7 @@ int copy_prinfo(struct prinfo *dst, struct task_struct *p)
 	q.uid = p->real_cred->uid;
 	q.first_child_pid = has_child(p) ? first_child(p)->pid : 0;
 	q.next_sibling_pid = has_next_sibling(p) ? next_sibling(p)->pid : 0;
-	
+
 	if (copy_to_user(dst, &q, sizeof(struct prinfo)))
 		return -EFAULT;
 	return 0;
