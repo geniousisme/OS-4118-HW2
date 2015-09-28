@@ -30,6 +30,7 @@ struct task_struct *next_sibling(struct task_struct *p)
 
 void print_prinfo(struct task_struct *p)
 {
+	/* this function is for debugging */
 	struct prinfo q;
 	struct task_struct *itr;
 	itr = p;
@@ -48,27 +49,39 @@ void print_prinfo(struct task_struct *p)
 	       q.parent_pid, q.first_child_pid, q.next_sibling_pid, q.uid);
 }
 
+int copy_prinfo(struct prinfo *dst, struct task_struct *p)
+{
+	struct prinfo q;
+	strncpy(q.comm, p->comm, 64);
+	q.pid = p->pid;
+	q.state = p->state;
+	q.parent_pid = p->real_parent->pid;
+	q.uid = p->real_cred->uid;
+	q.first_child_pid = has_child(p) ? first_child(p)->pid : 0;
+	q.next_sibling_pid = has_next_sibling(p) ? next_sibling(p)->pid : 0;
+	
+	if (copy_to_user(dst, &q, sizeof(struct prinfo)))
+		return -EFAULT;
+	return 0;
+}
+
 SYSCALL_DEFINE2(ptree, struct prinfo *, buf, int *, nr)
 {
 	struct task_struct *p;
 	int pc = 0; /* pcocess count */
 	int check_child, store;
 
-	printk("ptree is called\n");
-	buf = kmalloc_array(*nr, sizeof(struct prinfo), GFP_KERNEL);
-	/* TODO handle kmalloc_array error */
+	if (buf == NULL && nr == NULL)
+		return -EINVAL;
 
 	read_lock(&tasklist_lock);
 
 	p = &init_task;
 	check_child = store = 1;
 	while (1) {
-		if (store) {
-			print_prinfo(p);
-			if (++pc <= *nr) {
-				/* copy data into buf */
-			}
-		}		
+		if (store && pc < *nr)
+			if (copy_prinfo(&buf[pc++], p))
+				return -EFAULT;
 		/* check child */
 		if (check_child && has_child(p)) {
 			p = first_child(p);
@@ -90,6 +103,8 @@ SYSCALL_DEFINE2(ptree, struct prinfo *, buf, int *, nr)
 
 	read_unlock(&tasklist_lock);
 
+	if (pc < 1)
+		return -EINVAL;
 	if (pc < *nr && copy_to_user(nr, &pc, sizeof(int)))
 		return -EFAULT;
 	return pc;
