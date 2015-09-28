@@ -9,13 +9,15 @@ int main()
 {
 	struct prinfo p[N], q;
 	int nr = N, pc, i, j, indents[N] = {0};
+	/* indents store the next pid has such indent level.
+           If indents[1] = 10, it means process 10 has indent level 1 */
 
 	pc = syscall(223, p, &nr);
 
 	for (i = 0; i < nr && i < pc; i++) {
 		q = p[i];
 		j = 0;
-		while (indents[j] != q.pid && j < 5) {
+		while (indents[j] != q.pid) {
 			printf("\t");
 			j++;
 		}
