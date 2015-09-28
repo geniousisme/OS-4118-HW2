@@ -8,10 +8,49 @@
 
 extern rwlock_t tasklist_lock;
 
+int has_child(struct task_struct *p)
+{
+	return !list_empty(&p->children);
+}
+
+int has_next_sibling(struct task_struct *p)
+{
+	return !list_is_last(&p->sibling, &p->parent->children);
+}
+
+struct task_struct *first_child(struct task_struct *p)
+{
+	return list_first_entry(&p->children, struct task_struct, sibling);
+}
+
+struct task_struct *next_sibling(struct task_struct *p)
+{
+	return list_first_entry(&p->sibling, struct task_struct, sibling);
+}
+
+void print_prinfo(struct task_struct *p)
+{
+	struct prinfo q;
+	struct task_struct *itr;
+	itr = p;
+	while (itr != &init_task) {
+		printk("\t");
+		itr = itr->real_parent;
+	}
+	strncpy(q.comm, p->comm, 64);
+	q.pid = p->pid;
+	q.state = p->state;
+	q.parent_pid = p->real_parent->pid;
+	q.uid = p->real_cred->uid;
+	q.first_child_pid = has_child(p) ? first_child(p)->pid : 0;
+	q.next_sibling_pid = has_next_sibling(p) ? next_sibling(p)->pid : 0;
+	printk("%s,%d,%ld,%d,%d,%d,%ld\n", q.comm, q.pid, q.state,
+	       q.parent_pid, q.first_child_pid, q.next_sibling_pid, q.uid);
+}
+
 SYSCALL_DEFINE2(ptree, struct prinfo *, buf, int *, nr)
 {
-	struct task_struct *p, *itr;
-	struct prinfo q;
+	struct task_struct *p;
 	int pc = 0; /* pcocess count */
 	int check_child, store;
 
@@ -25,30 +64,19 @@ SYSCALL_DEFINE2(ptree, struct prinfo *, buf, int *, nr)
 	check_child = store = 1;
 	while (1) {
 		if (store) {
-			itr = p;
-			while (itr != &init_task) {
-				printk("\t");
-				itr = itr->real_parent;
-			}
-			strncpy(q.comm, p->comm, 64);
-			q.pid = p->pid;
-			q.state = p-> state;
-			q.parent_pid = p->real_parent->pid;
-			q.uid = p->real_cred->uid;
-			printk("%s,%d,%ld,%d,%ld\n", q.comm, q.pid, q.state, q.parent_pid, q.uid);
-
+			print_prinfo(p);
 			if (++pc <= *nr) {
 				/* copy data into buf */
 			}
 		}		
-		/* check children */
-		if (check_child && !list_empty(&p->children)) {
-			p = list_first_entry(&p->children, struct task_struct, sibling);
+		/* check child */
+		if (check_child && has_child(p)) {
+			p = first_child(p);
 			continue;
 		}
 		/* check sibling */
-		if (!list_is_last(&p->sibling, &p->parent->children)) {
-			p = list_first_entry(&p->sibling, struct task_struct, sibling);
+		if (has_next_sibling(p)) {
+			p = next_sibling(p);
 			check_child = store = 1;
 			continue;
 		}
