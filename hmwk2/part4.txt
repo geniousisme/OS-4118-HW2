@@ -28,9 +28,9 @@ Ans:
         - first child process id
         - next sibling process id
 
-    the only thing change is the first child id of adbd and also the process id of the ptree, and the other things don't change too much. It is because that other programs exist since the system turn on, and while we run the ptree_test, we basically just use adbd to run the file. As the result, the other programs don't change aything, for example, their owner process doesn't change, parent process doesn't die and process don't change.
+    the only thing change is the first child id of adbd and also the process id of the ptree, and the other things don't change too much. It is because that other programs exist since the system turn on, and while we run the ptree_test, we basically just use adbd to run the file. As the result, the other programs don't change anything, for example, their owner process doesn't change, parent process doesn't die and process don't change.
 
-    And why do adbd first child prcess id and ptree_test parent id change? This is because  adbd is the parent process of ptree, and when we re-run the ptree, adbd will assign a new child process for ptree and ptree will get a new process id. The fields can change with different frequency, since current processes on system have different pids and states from time to time, and also, the process would go away or be forked or re-parented with different frequency.
+    And why do adbd first child process id and ptree_test parent id change? This is because adbd is the parent process of ptree, and when we re-run the ptree, adbd will assign a new child process for ptree and ptree will get a new process id. The fields can change with different frequency, since current processes on system have different pids and states from time to time, and also, the process would go away or be forked or re-parented with different frequency.
 
 
 b. Start the mobile web browser in the emulator, and re-run your test program. How many processes are started? What is/are the parent process(es) of the new process(es)? Close the browser (press the "Home" button). How many processes were destroyed? Discuss your findings.
@@ -62,4 +62,4 @@ iii. Discuss some reasons why an embedded system might choose to use a process l
 HINT: A key feature of embedded systems is their resource limitations.
 
 Ans:
-    Since embedded system has very limited resource, it would be too expensive for embedded system to let each process to copy their own core libraries. A lot of resources can be saved by letting zygote to share the core libraries with other application process without duplication. Furthermore, since embedded system seldom change its own core libraries, making zygote to have all core libraries first can accelerate the speed of starting new application process. Therefore, the resource of embedded system can be saved and the speed can be raised.
+    Since embedded system has very limited resource, it would be too expensive for embedded system to let each process to copy their own core libraries. Letting zygote to share the core libraries with other application process without duplication can save a lot of resources. Furthermore, since embedded system seldom change its own core libraries, making zygote to have all core libraries first can accelerate the speed of starting new application process. Therefore, the resource of embedded system can be saved and the speed can be raised.
