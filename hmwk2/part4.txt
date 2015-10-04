@@ -1,0 +1,65 @@
+4. Investigate the Android process tree
+
+a. Run your test program several times. Which fields in the prinfo structure change? Which ones do not? Discuss why different fields might change with different frequency.
+
+Ans:
+    We ran ptree for five times, and the following is the result we get for the part which is changed:
+
+    1. adbd,59,1,1,1024,0,0
+                ptree_test,1024,0,59,0,0,0
+
+    2. adbd,59,1,1,1028,0,0
+                ptree_test,1028,0,59,0,0,0
+
+    3. adbd,59,1,1,1033,0,0
+                ptree_test,1033,0,59,0,0,0
+
+    4. adbd,59,1,1,1035,0,0
+                ptree_test,1035,0,59,0,0,0
+
+    5. adbd,59,1,1,1037,0,0
+                ptree_test,1037,0,59,0,0,0
+
+    in out ptree_test, the display order is like this:
+        - program name
+        - process id
+        - state of process
+        - parent process id
+        - first child process id
+        - next sibling process id
+
+    the only thing change is the first child id of adbd and also the process id of the ptree, and the other things don't change too much. It is because that other programs exist since the system turn on, and while we run the ptree_test, we basically just use adbd to run the file. As the result, the other programs don't change anything, for example, their owner process doesn't change, parent process doesn't die and process don't change.
+
+    And why do adbd first child process id and ptree_test parent id change? This is because adbd is the parent process of ptree, and when we re-run the ptree, adbd will assign a new child process for ptree and ptree will get a new process id. The fields can change with different frequency, since current processes on system have different pids and states from time to time, and also, the process would go away or be forked or re-parented with different frequency.
+
+
+b. Start the mobile web browser in the emulator, and re-run your test program. How many processes are started? What is/are the parent process(es) of the new process(es)? Close the browser (press the "Home" button). How many processes were destroyed? Discuss your findings.
+
+Ans:
+    when we start the mobile web browser, the only new process is the following:
+
+        ndroid.launcher,1061,1,50,0,0,10008
+
+    and the parent process of this process is:
+
+        zygote,50,1,1,372,51,0
+
+    When we click the Home button to close the browser, no process is gone or destroyed, even after few hours, the browser process still exist. So we think that hitting the home button doesn't really kill the process of browser, it will probably just put it into background to make it sleep. However, we find that when we use the real closing way to close browser (drag it from left to right), the process will actually be destroyed. We think that it is the realy way to close a process in android.
+
+
+c. Notice that on the Android platform there is a process named zygote. Investigate this process and any children processes:
+i. What is the purpose of this process?
+
+Ans:
+    Zygote, just like its name, is an initial system services process and start at init (which is specified in the init.rc file). Also, zygote is the parent process of all application process. Besides, zygote has all core libraries of android OS without duplication and can only allow the use of existing read-only in this single process. As the result, when an application starts, a message will be sent to zygote process and fork system call starts. Therefore, the application starting time can be reduced.
+    
+ii. Where is the zygote binary? If you can't find it, how might you explain its presence in your list of processes?
+
+Ans:
+    There is no zygote binary in android, however, it is in the /system/bin/app_process. We found this by investigating the /proc structure. Though there are no programs called zygote, but zygote process binary is created by init process, which is specified in init.rc, and copies the core libraries.
+
+iii. Discuss some reasons why an embedded system might choose to use a process like the zygote.
+HINT: A key feature of embedded systems is their resource limitations.
+
+Ans:
+    Since embedded system has very limited resource, it would be too expensive for embedded system to let each process to copy their own core libraries. Letting zygote to share the core libraries with other application process without duplication can save a lot of resources. Furthermore, since embedded system seldom change its own core libraries, making zygote to have all core libraries first can accelerate the speed of starting new application process. Therefore, the resource of embedded system can be saved and the speed can be raised.
