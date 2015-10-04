@@ -38,11 +38,11 @@ b. Start the mobile web browser in the emulator, and re-run your test program. H
 Ans:
     when we start the mobile web browser, the only new process is the following:
 
-        ndroid.launcher,1061,1,50,0,0,10008
+        android.browser,1026,1,51,0,0,10014
 
     and the parent process of this process is:
 
-        zygote,50,1,1,372,51,0
+        zygote,51,1,1,368,52,0
 
     When we click the Home button to close the browser, no process is gone or destroyed, even after few hours, the browser process still exist. So we think that hitting the home button doesn't really kill the process of browser, it will probably just put it into background to make it sleep. However, we find that when we use the real closing way to close browser (drag it from left to right), the process will actually be destroyed. We think that it is the realy way to close a process in android.
 
